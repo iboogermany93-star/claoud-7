@@ -1,0 +1,1371 @@
+I'll create a comprehensive trading platform dashboard with all the requested features. Let me build a modern, dark-themed, bilingual trading platform.
+
+```html
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeMind Pro — Multi-School Trading Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0D1117;
+    --card: #161B22;
+    --card-hover: #1C2128;
+    --text: #E6EDF3;
+    --text-2: #8B949E;
+    --primary: #2F81F7;
+    --success: #2EA043;
+    --danger: #F85149;
+    --warning: #D29922;
+    --border: rgba(255,255,255,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+  }
+  [dir="rtl"] body, [dir="rtl"] * { font-family: 'Cairo', sans-serif; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #30363D; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #484F58; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    transition: all 0.25s ease;
+  }
+  .card:hover { border-color: rgba(47,129,247,0.25); }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-radius: 10px;
+    color: var(--text-2);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .nav-item:hover { background: rgba(47,129,247,0.08); color: var(--text); }
+  .nav-item.active {
+    background: linear-gradient(135deg, rgba(47,129,247,0.18), rgba(47,129,247,0.05));
+    color: var(--primary);
+    border: 1px solid rgba(47,129,247,0.25);
+  }
+  .nav-item.active svg { color: var(--primary); }
+
+  .pulse-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--success);
+    box-shadow: 0 0 0 0 rgba(46,160,67,0.7);
+    animation: pulse 1.8s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(46,160,67,0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(46,160,67,0); }
+    100% { box-shadow: 0 0 0 0 rgba(46,160,67,0); }
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  }
+  .badge-success { background: rgba(46,160,67,0.12); color: var(--success); border: 1px solid rgba(46,160,67,0.25); }
+  .badge-danger { background: rgba(248,81,73,0.12); color: var(--danger); border: 1px solid rgba(248,81,73,0.25); }
+  .badge-primary { background: rgba(47,129,247,0.12); color: var(--primary); border: 1px solid rgba(47,129,247,0.25); }
+  .badge-warning { background: rgba(210,153,34,0.12); color: var(--warning); border: 1px solid rgba(210,153,34,0.25); }
+
+  .btn {
+    padding: 9px 16px; border-radius: 10px; font-weight: 600; font-size: 14px;
+    transition: all 0.2s ease; cursor: pointer; border: none;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: #1F6FEB; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--card-hover); color: var(--text); }
+
+  .page { display: none; animation: fadeIn 0.35s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 12px; font-size: 12px; font-weight: 600;
+       color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px;
+       border-bottom: 1px solid var(--border); }
+  [dir="rtl"] th { text-align: right; }
+  td { padding: 14px 12px; font-size: 13.5px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .progress {
+    height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;
+  }
+  .progress-bar { height: 100%; transition: width 0.6s ease; border-radius: 3px; }
+
+  .ai-msg {
+    padding: 12px 16px; border-radius: 14px; margin-bottom: 12px;
+    max-width: 85%; line-height: 1.6; font-size: 14px;
+  }
+  .ai-msg-user { background: var(--primary); color: white; margin-left: auto; }
+  [dir="rtl"] .ai-msg-user { margin-left: 0; margin-right: auto; }
+  .ai-msg-bot { background: var(--card-hover); border: 1px solid var(--border); }
+
+  .stat-tile {
+    background: linear-gradient(135deg, var(--card), rgba(47,129,247,0.04));
+    border: 1px solid var(--border); border-radius: 14px; padding: 18px;
+    transition: all 0.25s ease;
+  }
+  .stat-tile:hover { transform: translateY(-2px); border-color: rgba(47,129,247,0.3); }
+
+  select, input[type="text"], input[type="number"], textarea {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 9px 12px; border-radius: 10px; font-size: 14px; outline: none;
+    transition: border 0.2s;
+  }
+  select:focus, input:focus, textarea:focus { border-color: var(--primary); }
+
+  .toggle {
+    position: relative; width: 42px; height: 24px; background: #30363D;
+    border-radius: 12px; cursor: pointer; transition: background 0.2s;
+  }
+  .toggle::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; background: white; border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .toggle.active { background: var(--primary); }
+  .toggle.active::after { transform: translateX(18px); }
+  [dir="rtl"] .toggle.active::after { transform: translateX(-18px); }
+
+  .price-up { color: var(--success); }
+  .price-down { color: var(--danger); }
+  .flash-up { animation: flashUp 0.6s ease; }
+  .flash-down { animation: flashDown 0.6s ease; }
+  @keyframes flashUp { 0% { background: rgba(46,160,67,0.15); } 100% { background: transparent; } }
+  @keyframes flashDown { 0% { background: rgba(248,81,73,0.15); } 100% { background: transparent; } }
+
+  .school-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px; transition: all 0.25s;
+    cursor: pointer; position: relative; overflow: hidden;
+  }
+  .school-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--primary), #8B5CF6);
+  }
+  .school-card:hover { transform: translateY(-3px); border-color: rgba(47,129,247,0.3); }
+
+  .grid-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(47,129,247,0.12); color: var(--primary);
+  }
+
+  #sidebar { transition: transform 0.3s ease; }
+  @media (max-width: 1024px) {
+    #sidebar { position: fixed; z-index: 50; height: 100vh; transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    [dir="rtl"] #sidebar { transform: translateX(100%); }
+    [dir="rtl"] #sidebar.open { transform: translateX(0); }
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--primary), #8B5CF6);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+</style>
+</head>
+<body>
+
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-64 border-e p-4 flex-shrink-0" style="border-color: var(--border); background: #0B0F14;">
+    <div class="flex items-center gap-3 mb-8 px-2">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #2F81F7, #8B5CF6);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      </div>
+      <div>
+        <div class="font-bold text-lg gradient-text">TradeMind</div>
+        <div class="text-xs" style="color: var(--text-2);" data-i18n="tagline">Pro Platform</div>
+      </div>
+    </div>
+
+    <nav class="space-y-1">
+      <div class="nav-item active" data-page="dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        <span data-i18n="dashboard">Dashboard</span>
+      </div>
+      <div class="nav-item" data-page="markets">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span data-i18n="markets">Markets</span>
+      </div>
+      <div class="nav-item" data-page="timeframes">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span data-i18n="timeframes">Timeframes</span>
+      </div>
+      <div class="nav-item" data-page="schools">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        <span data-i18n="schools">Schools</span>
+      </div>
+      <div class="nav-item" data-page="trades">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        <span data-i18n="trades">Trades</span>
+      </div>
+      <div class="nav-item" data-page="statistics">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span data-i18n="statistics">Statistics</span>
+      </div>
+      <div class="nav-item" data-page="backlist">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span data-i18n="backlist">Backlist</span>
+      </div>
+      <div class="nav-item" data-page="ai-assistant">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+        <span data-i18n="ai_assistant">AI Assistant</span>
+      </div>
+      <div class="nav-item" data-page="settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span data-i18n="settings">Settings</span>
+      </div>
+    </nav>
+
+    <div class="mt-8 p-4 rounded-xl" style="background: linear-gradient(135deg, rgba(47,129,247,0.12), rgba(139,92,246,0.08)); border: 1px solid rgba(47,129,247,0.2);">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="pulse-dot"></div>
+        <span class="text-xs font-semibold" style="color: var(--success);" data-i18n="live">LIVE</span>
+      </div>
+      <div class="text-xs" style="color: var(--text-2);" data-i18n="mockNotice">Currently using mock data. MT5 integration ready.</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 min-w-0">
+    <!-- Topbar -->
+    <header class="flex items-center justify-between p-4 border-b" style="border-color: var(--border); backdrop-filter: blur(8px); background: rgba(13,17,23,0.85); position: sticky; top: 0; z-index: 20;">
+      <div class="flex items-center gap-3">
+        <button id="menuBtn" class="lg:hidden btn btn-ghost p-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <h1 id="pageTitle" class="text-xl font-bold" data-i18n="dashboard">Dashboard</h1>
+          <p class="text-xs" style="color: var(--text-2);" data-i18n="welcome">Welcome back, here's your trading overview</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="langToggle" class="btn btn-ghost text-sm" title="Toggle Language">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <span id="langLabel">عربي</span>
+        </button>
+        <div class="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg" style="background: var(--card); border: 1px solid var(--border);">
+          <div class="pulse-dot"></div>
+          <span class="text-xs font-semibold" data-i18n="connected">Connected</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="p-4 md:p-6">
+      <!-- DASHBOARD -->
+      <section id="page-dashboard" class="page active">
+        <!-- KPI Tiles -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="stat-tile">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold" style="color: var(--text-2);" data-i18n="winRate">Win Rate</span>
+              <div class="grid-icon" style="width:32px;height:32px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+            </div>
+            <div class="text-2xl font-bold">68.4%</div>
+            <div class="text-xs mt-1" style="color: var(--success);">▲ 3.2% <span style="color: var(--text-2);" data-i18n="vsLastWeek">vs last week</span></div>
+          </div>
+          <div class="stat-tile">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold" style="color: var(--text-2);" data-i18n="profitFactor">Profit Factor</span>
+              <div class="grid-icon" style="width:32px;height:32px;background:rgba(46,160,67,0.12);color:var(--success);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            </div>
+            <div class="text-2xl font-bold">2.14</div>
+            <div class="text-xs mt-1" style="color: var(--success);">▲ 0.18</div>
+          </div>
+          <div class="stat-tile">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold" style="color: var(--text-2);" data-i18n="activeTrades">Active Trades</span>
+              <div class="grid-icon" style="width:32px;height:32px;background:rgba(210,153,34,0.12);color:var(--warning);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+            </div>
+            <div class="text-2xl font-bold">7</div>
+            <div class="text-xs mt-1" style="color: var(--text-2);"><span data-i18n="across">across</span> 5 <span data-i18n="symbols">symbols</span></div>
+          </div>
+          <div class="stat-tile">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold" style="color: var(--text-2);" data-i18n="totalTrades">Total Trades</span>
+              <div class="grid-icon" style="width:32px;height:32px;background:rgba(139,92,246,0.12);color:#8B5CF6;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 12l4-4 4 4 6-6"/></svg></div>
+            </div>
+            <div class="text-2xl font-bold">1,284</div>
+            <div class="text-xs mt-1" style="color: var(--text-2);" data-i18n="last30">last 30 days</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <!-- Equity Curve -->
+          <div class="card p-5 lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-semibold" data-i18n="equityCurve">Equity Curve</h3>
+                <p class="text-xs" style="color: var(--text-2);" data-i18n="performance30">Performance over last 30 days</p>
+              </div>
+              <div class="flex gap-1">
+                <button class="btn btn-ghost text-xs px-3 py-1.5">7D</button>
+                <button class="btn btn-primary text-xs px-3 py-1.5">30D</button>
+                <button class="btn btn-ghost text-xs px-3 py-1.5">90D</button>
+              </div>
+            </div>
+            <div style="height: 260px;"><canvas id="equityChart"></canvas></div>
+          </div>
+
+          <!-- Live Prices -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold" data-i18n="livePrices">Live Prices</h3>
+              <div class="pulse-dot"></div>
+            </div>
+            <div id="livePrices" class="space-y-3"></div>
+          </div>
+        </div>
+
+        <!-- Active Trades + Signals -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold" data-i18n="activeTrades">Active Trades</h3>
+              <span class="badge badge-primary">7 <span data-i18n="open">open</span></span>
+            </div>
+            <div class="overflow-x-auto">
+              <table>
+                <thead><tr>
+                  <th data-i18n="symbol">Symbol</th>
+                  <th data-i18n="school">School</th>
+                  <th data-i18n="type">Type</th>
+                  <th data-i18n="pnl">P&L</th>
+                </tr></thead>
+                <tbody id="activeTradesBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold" data-i18n="latestSignals">Latest Signals</h3>
+              <span class="badge badge-success">12 <span data-i18n="today">today</span></span>
+            </div>
+            <div id="signalsList" class="space-y-3 max-h-80 overflow-y-auto"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MARKETS -->
+      <section id="page-markets" class="page">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <div class="card p-5 lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-semibold">XAUUSD <span class="text-xs ml-2" style="color: var(--text-2);">Gold / USD</span></h3>
+                <div class="text-2xl font-bold mt-1">2,374.82 <span class="text-sm price-up">+0.42%</span></div>
+              </div>
+              <div class="flex gap-1">
+                <button class="btn btn-ghost text-xs px-3 py-1.5">M15</button>
+                <button class="btn btn-ghost text-xs px-3 py-1.5">H1</button>
+                <button class="btn btn-primary text-xs px-3 py-1.5">H4</button>
+                <button class="btn btn-ghost text-xs px-3 py-1.5">D1</button>
+              </div>
+            </div>
+            <div style="height: 320px;"><canvas id="marketChart"></canvas></div>
+          </div>
+          <div class="card p-5">
+            <h3 class="font-semibold mb-4" data-i18n="watchlist">Watchlist</h3>
+            <div id="watchlist" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <div class="card p-5">
+          <h3 class="font-semibold mb-4" data-i18n="symbolComparison">Symbol Comparison</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr>
+                <th data-i18n="symbol">Symbol</th>
+                <th data-i18n="price">Price</th>
+                <th data-i18n="change">24h Change</th>
+                <th>ATR</th>
+                <th data-i18n="winRate">Win Rate</th>
+                <th data-i18n="totalTrades">Total Trades</th>
+                <th data-i18n="trend">Trend</th>
+              </tr></thead>
+              <tbody id="symbolsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TIMEFRAMES -->
+      <section id="page-timeframes" class="page">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6" id="tfGrid"></div>
+        <div class="card p-5">
+          <h3 class="font-semibold mb-4" data-i18n="timeframeComparison">Timeframe Comparison</h3>
+          <div style="height: 320px;"><canvas id="tfChart"></canvas></div>
+        </div>
+      </section>
+
+      <!-- SCHOOLS -->
+      <section id="page-schools" class="page">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6" id="schoolsGrid"></div>
+        <div class="card p-5">
+          <h3 class="font-semibold mb-4" data-i18n="schoolComparison">School Comparison</h3>
+          <div style="height: 340px;"><canvas id="schoolChart"></canvas></div>
+        </div>
+      </section>
+
+      <!-- TRADES -->
+      <section id="page-trades" class="page">
+        <div class="card p-5 mb-6">
+          <div class="flex flex-wrap gap-3 items-center">
+            <select id="filterSchool"><option value="">All Schools</option></select>
+            <select id="filterSymbol"><option value="">All Symbols</option></select>
+            <select id="filterStatus">
+              <option value="">All Status</option>
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+            </select>
+            <button class="btn btn-primary ms-auto">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span data-i18n="export">Export</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card p-5">
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr>
+                <th>#</th>
+                <th data-i18n="symbol">Symbol</th>
+                <th data-i18n="school">School</th>
+                <th data-i18n="timeframe">TF</th>
+                <th data-i18n="type">Type</th>
+                <th data-i18n="entry">Entry</th>
+                <th>SL</th>
+                <th>TP1</th>
+                <th>TP2</th>
+                <th data-i18n="result">Result</th>
+                <th data-i18n="pnl">P&L</th>
+              </tr></thead>
+              <tbody id="tradesTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATISTICS -->
+      <section id="page-statistics" class="page">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div class="card p-5">
+            <h3 class="font-semibold mb-4" data-i18n="winRateBySchool">Win Rate by School</h3>
+            <div style="height: 280px;"><canvas id="statSchoolChart"></canvas></div>
+          </div>
+          <div class="card p-5">
+            <h3 class="font-semibold mb-4" data-i18n="winRateByTF">Win Rate by Timeframe</h3>
+            <div style="height: 280px;"><canvas id="statTFChart"></canvas></div>
+          </div>
+        </div>
+        <div class="card p-5 mb-6">
+          <h3 class="font-semibold mb-4" data-i18n="detailedBreakdown">Detailed Breakdown (School × Symbol × Timeframe)</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr>
+                <th data-i18n="school">School</th>
+                <th data-i18n="symbol">Symbol</th>
+                <th data-i18n="timeframe">TF</th>
+                <th data-i18n="winRate">Win Rate</th>
+                <th>TP1</th>
+                <th>TP2</th>
+                <th data-i18n="profitFactor">PF</th>
+                <th data-i18n="avgRR">Avg R:R</th>
+                <th data-i18n="bestSession">Best Session</th>
+                <th data-i18n="bestHour">Best Hour</th>
+                <th data-i18n="totalTrades">Trades</th>
+              </tr></thead>
+              <tbody id="statsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- BACKLIST -->
+      <section id="page-backlist" class="page">
+        <div class="card p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-semibold" data-i18n="backlistHistory">Backlist - Historical Signals</h3>
+              <p class="text-xs" style="color: var(--text-2);" data-i18n="zeroRepaint">0% repainting · 0% deletion · Fully deterministic</p>
+            </div>
+            <span class="badge badge-success">347 <span data-i18n="signals">signals</span></span>
+          </div>
+          <div id="backlist" class="space-y-2"></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="page-settings" class="page">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="card p-5">
+            <h3 class="font-semibold mb-4" data-i18n="general">General</h3>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium" data-i18n="darkMode">Dark Mode</div>
+                  <div class="text-xs" style="color: var(--text-2);" data-i18n="defaultTheme">Default theme (recommended)</div>
+                </div>
+                <div class="toggle active"></div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium" data-i18n="notifications">Notifications</div>
+                  <div class="text-xs" style="color: var(--text-2);" data-i18n="alertsOnSignal">Alerts on new signals</div>
+                </div>
+                <div class="toggle active"></div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium" data-i18n="soundAlerts">Sound Alerts</div>
+                  <div class="text-xs" style="color: var(--text-2);" data-i18n="audioOnSignal">Play sound on entries</div>
+                </div>
+                <div class="toggle"></div>
+              </div>
+              <div>
+                <label class="text-sm font-medium block mb-2" data-i18n="language">Language</label>
+                <select id="settingsLang" class="w-full">
+                  <option value="en">English</option>
+                  <option value="ar">العربية</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-5">
+            <h3 class="font-semibold mb-4" data-i18n="dataSource">Data Source</h3>
+            <div class="space-y-4">
+              <div class="p-3 rounded-lg" style="background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.2);">
+                <div class="flex items-center gap-2 mb-1">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <span class="text-sm font-semibold" style="color: var(--warning);" data-i18n="mockMode">Mock Mode Active</span>
+                </div>
+                <div class="text-xs" style="color: var(--text-2);" data-i18n="mt5Ready">MT5 integration architecture ready. Switch when credentials are configured.</div>
+              </div>
+              <div>
+                <label class="text-sm font-medium block mb-2">MT5 Server</label>
+                <input type="text" placeholder="e.g. ICMarkets-Live01" class="w-full" disabled>
+              </div>
+              <div>
+                <label class="text-sm font-medium block mb-2">Account Number</label>
+                <input type="text" placeholder="000000" class="w-full" disabled>
+              </div>
+              <button class="btn btn-primary w-full" data-i18n="saveSettings">Save Settings</button>
+            </div>
+          </div>
+
+          <div class="card p-5 md:col-span-2">
+            <h3 class="font-semibold mb-4" data-i18n="riskManagement">Risk Management</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="text-sm font-medium block mb-2" data-i18n="riskPerTrade">Risk per Trade (%)</label>
+                <input type="number" value="1" class="w-full">
+              </div>
+              <div>
+                <label class="text-sm font-medium block mb-2" data-i18n="maxDailyTrades">Max Daily Trades</label>
+                <input type="number" value="5" class="w-full">
+              </div>
+              <div>
+                <label class="text-sm font-medium block mb-2" data-i18n="atrMultiplier">ATR SL Multiplier</label>
+                <input type="number" value="1.5" step="0.1" class="w-full">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI ASSISTANT -->
+      <section id="page-ai-assistant" class="page">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="card p-5 lg:col-span-2 flex flex-col" style="height: calc(100vh - 180px); min-height: 500px;">
+            <div class="flex items-center gap-3 pb-4 border-b" style="border-color: var(--border);">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #2F81F7, #8B5CF6);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+              </div>
+              <div>
+                <h3 class="font-semibold">TradeMind AI</h3>
+                <div class="text-xs flex items-center gap-2" style="color: var(--text-2);">
+                  <div class="pulse-dot" style="width:6px;height:6px;"></div>
+                  <span data-i18n="onlineEducational">Online · Educational only</span>
+                </div>
+              </div>
+            </div>
+            <div id="chatBox" class="flex-1 overflow-y-auto py-4">
+              <div class="ai-msg ai-msg-bot" data-i18n="aiGreeting">👋 Hello! I'm your TradeMind AI assistant. I can analyze trends across all schools and timeframes, generate educational trade ideas, and explain signal logic. What would you like to know?</div>
+            </div>
+            <div class="pt-3 border-t" style="border-color: var(--border);">
+              <div class="flex flex-wrap gap-2 mb-3">
+                <button class="btn btn-ghost text-xs" onclick="askAI('Why did SMC give a buy signal on XAUUSD?')" data-i18n="qSMC">Why SMC buy?</button>
+                <button class="btn btn-ghost text-xs" onclick="askAI('What is the trend on XAUUSD H4?')" data-i18n="qTrend">XAUUSD H4 trend?</button>
+                <button class="btn btn-ghost text-xs" onclick="askAI('Generate an educational trade idea')" data-i18n="qIdea">Generate trade idea</button>
+                <button class="btn btn-ghost text-xs" onclick="askAI('Which school performs best on BTCUSD?')" data-i18n="qBest">Best school for BTC?</button>
+              </div>
+              <div class="flex gap-2">
+                <input id="chatInput" type="text" class="flex-1" placeholder="Ask about signals, trends, schools..." data-i18n-ph="askPlaceholder">
+                <button class="btn btn-primary" onclick="sendMessage()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div class="card p-5">
+              <h3 class="font-semibold mb-3" data-i18n="aiCapabilities">AI Capabilities</h3>
+              <div class="space-y-3 text-sm">
+                <div class="flex items-start gap-2"><span style="color: var(--success);">✓</span><span data-i18n="cap1">Reads all platform data (prices, signals, trades)</span></div>
+                <div class="flex items-start gap-2"><span style="color: var(--success);">✓</span><span data-i18n="cap2">Analyzes all timeframes & schools</span></div>
+                <div class="flex items-start gap-2"><span style="color: var(--success);">✓</span><span data-i18n="cap3">Generates educational trade ideas</span></div>
+                <div class="flex items-start gap-2"><span style="color: var(--success);">✓</span><span data-i18n="cap4">Calculates Entry, SL, TP1, TP2</span></div>
+                <div class="flex items-start gap-2"><span style="color: var(--success);">✓</span><span data-i18n="cap5">Provides confidence levels</span></div>
+                <div class="flex items-start gap-2"><span style="color: var(--success);">✓</span><span data-i18n="cap6">Bilingual responses (AR/EN)</span></div>
+              </div>
+            </div>
+            <div class="card p-5" style="border-color: rgba(248,81,73,0.25);">
+              <div class="flex items-center gap-2 mb-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                <span class="font-semibold text-sm" style="color: var(--danger);" data-i18n="disclaimer">Disclaimer</span>
+              </div>
+              <div class="text-xs leading-relaxed" style="color: var(--text-2);" data-i18n="disclaimerText">All AI outputs are educational only. Not financial advice. No future predictions are made — only data-driven analysis based on historical platform data.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ==========================================
+   TRANSLATIONS (ar.json / en.json equivalent)
+   ========================================== */
+const translations = {
+  en: {
+    tagline: "Pro Platform", dashboard: "Dashboard", markets: "Markets", timeframes: "Timeframes",
+    schools: "Schools", trades: "Trades", statistics: "Statistics", backlist: "Backlist",
+    settings: "Settings", ai_assistant: "AI Assistant", live: "LIVE",
+    mockNotice: "Currently using mock data. MT5 integration ready.",
+    welcome: "Welcome back, here's your trading overview", connected: "Connected",
+    winRate: "Win Rate", profitFactor: "Profit Factor", activeTrades: "Active Trades",
+    totalTrades: "Total Trades", vsLastWeek: "vs last week", across: "across", symbols: "symbols",
+    last30: "last 30 days", equityCurve: "Equity Curve", performance30: "Performance over last 30 days",
+    livePrices: "Live Prices", open: "open", latestSignals: "Latest Signals", today: "today",
+    symbol: "Symbol", school: "School", type: "Type", pnl: "P&L", price: "Price",
+    change: "24h Change", trend: "Trend", watchlist: "Watchlist", symbolComparison: "Symbol Comparison",
+    timeframeComparison: "Timeframe Comparison", schoolComparison: "School Comparison",
+    timeframe: "TF", entry: "Entry", result: "Result", export: "Export",
+    winRateBySchool: "Win Rate by School", winRateByTF: "Win Rate by Timeframe",
+    detailedBreakdown: "Detailed Breakdown (School × Symbol × Timeframe)",
+    avgRR: "Avg R:R", bestSession: "Best Session", bestHour: "Best Hour",
+    backlistHistory: "Backlist - Historical Signals",
+    zeroRepaint: "0% repainting · 0% deletion · Fully deterministic", signals: "signals",
+    general: "General", darkMode: "Dark Mode", defaultTheme: "Default theme (recommended)",
+    notifications: "Notifications", alertsOnSignal: "Alerts on new signals",
+    soundAlerts: "Sound Alerts", audioOnSignal: "Play sound on entries", language: "Language",
+    dataSource: "Data Source", mockMode: "Mock Mode Active",
+    mt5Ready: "MT5 integration architecture ready. Switch when credentials are configured.",
+    saveSettings: "Save Settings", riskManagement: "Risk Management",
+    riskPerTrade: "Risk per Trade (%)", maxDailyTrades: "Max Daily Trades",
+    atrMultiplier: "ATR SL Multiplier", onlineEducational: "Online · Educational only",
+    aiGreeting: "👋 Hello! I'm your TradeMind AI assistant. I can analyze trends across all schools and timeframes, generate educational trade ideas, and explain signal logic. What would you like to know?",
+    qSMC: "Why SMC buy?", qTrend: "XAUUSD H4 trend?", qIdea: "Generate trade idea",
+    qBest: "Best school for BTC?", askPlaceholder: "Ask about signals, trends, schools...",
+    aiCapabilities: "AI Capabilities",
+    cap1: "Reads all platform data (prices, signals, trades)",
+    cap2: "Analyzes all timeframes & schools",
+    cap3: "Generates educational trade ideas",
+    cap4: "Calculates Entry, SL, TP1, TP2",
+    cap5: "Provides confidence levels",
+    cap6: "Bilingual responses (AR/EN)",
+    disclaimer: "Disclaimer",
+    disclaimerText: "All AI outputs are educational only. Not financial advice. No future predictions are made — only data-driven analysis based on historical platform data."
+  },
+  ar: {
+    tagline: "منصة احترافية", dashboard: "لوحة التحكم", markets: "الأسواق", timeframes: "الأطر الزمنية",
+    schools: "المدارس", trades: "الصفقات", statistics: "الإحصائيات", backlist: "السجل التاريخي",
+    settings: "الإعدادات", ai_assistant: "المساعد الذكي", live: "مباشر",
+    mockNotice: "البيانات حالياً تجريبية. نظام التكامل مع MT5 جاهز.",
+    welcome: "أهلاً بعودتك، إليك ملخص تداولاتك", connected: "متصل",
+    winRate: "نسبة الربح", profitFactor: "عامل الربح", activeTrades: "الصفقات المفتوحة",
+    totalTrades: "إجمالي الصفقات", vsLastWeek: "مقارنة بالأسبوع الماضي", across: "موزعة على", symbols: "رمز",
+    last30: "آخر 30 يوم", equityCurve: "منحنى رأس المال", performance30: "الأداء خلال آخر 30 يوم",
+    livePrices: "الأسعار المباشرة", open: "مفتوحة", latestSignals: "أحدث الإشارات", today: "اليوم",
+    symbol: "الرمز", school: "المدرسة", type: "النوع", pnl: "الربح/الخسارة", price: "السعر",
+    change: "تغير 24س", trend: "الاتجاه", watchlist: "قائمة المتابعة", symbolComparison: "مقارنة الرموز",
+    timeframeComparison: "مقارنة الأطر الزمنية", schoolComparison: "مقارنة المدارس",
+    timeframe: "الإطار", entry: "الدخول", result: "النتيجة", export: "تصدير",
+    winRateBySchool: "نسبة الربح حسب المدرسة", winRateByTF: "نسبة الربح حسب الإطار",
+    detailedBreakdown: "تفاصيل دقيقة (مدرسة × رمز × إطار زمني)",
+    avgRR: "متوسط R:R", bestSession: "أفضل جلسة", bestHour: "أفضل ساعة",
+    backlistHistory: "السجل التاريخي للإشارات",
+    zeroRepaint: "0% إعادة رسم · 0% حذف · تحديد كامل", signals: "إشارة",
+    general: "عام", darkMode: "الوضع الداكن", defaultTheme: "السمة الافتراضية (موصى بها)",
+    notifications: "الإشعارات", alertsOnSignal: "تنبيهات عند الإشارات الجديدة",
+    soundAlerts: "تنبيهات صوتية", audioOnSignal: "تشغيل صوت عند الدخول", language: "اللغة",
+    dataSource: "مصدر البيانات", mockMode: "وضع البيانات التجريبية مفعل",
+    mt5Ready: "بنية التكامل مع MT5 جاهزة. سيتم التفعيل عند ضبط الاعتمادات.",
+    saveSettings: "حفظ الإعدادات", riskManagement: "إدارة المخاطر",
+    riskPerTrade: "المخاطرة في الصفقة (%)", maxDailyTrades: "الحد الأقصى للصفقات اليومية",
+    atrMultiplier: "مضاعف وقف الخسارة (ATR)", onlineEducational: "متصل · تعليمي فقط",
+    aiGreeting: "👋 أهلاً! أنا مساعدك TradeMind AI. أستطيع تحليل الاتجاهات عبر جميع المدارس والأطر الزمنية، وتوليد أفكار صفقات تعليمية، وشرح منطق الإشارات. عن ماذا تريد الاستفسار؟",
+    qSMC: "لماذا أشار SMC بالشراء؟", qTrend: "اتجاه XAUUSD H4؟", qIdea: "اقترح فكرة صفقة",
+    qBest: "أفضل مدرسة للبيتكوين؟", askPlaceholder: "اسأل عن الإشارات والاتجاهات والمدارس...",
+    aiCapabilities: "قدرات المساعد الذكي",
+    cap1: "يقرأ جميع بيانات المنصة (أسعار، إشارات، صفقات)",
+    cap2: "يحلل جميع الأطر الزمنية والمدارس",
+    cap3: "يولد أفكار صفقات تعليمية",
+    cap4: "يحسب نقاط الدخول و SL و TP1 و TP2",
+    cap5: "يوفر مستويات الثقة",
+    cap6: "ردود ثنائية اللغة (عربي/إنجليزي)",
+    disclaimer: "إخلاء مسؤولية",
+    disclaimerText: "جميع مخرجات المساعد الذكي تعليمية فقط. ليست نصيحة مالية. لا يتم التنبؤ بالمستقبل — فقط تحليل قائم على بيانات المنصة التاريخية."
+  }
+};
+
+let currentLang = 'en';
+
+function applyLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (translations[lang][key]) el.textContent = translations[lang][key];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const key = el.getAttribute('data-i18n-ph');
+    if (translations[lang][key]) el.placeholder = translations[lang][key];
+  });
+  document.getElementById('langLabel').textContent = lang === 'en' ? 'عربي' : 'English';
+  document.getElementById('settingsLang').value = lang;
+}
+
+document.getElementById('langToggle').addEventListener('click', () => applyLang(currentLang === 'en' ? 'ar' : 'en'));
+document.getElementById('settingsLang').addEventListener('change', (e) => applyLang(e.target.value));
+
+/* ==========================================
+   MOCK DATA (deterministic, no repainting)
+   ========================================== */
+const SCHOOLS = [
+  { id: 'smc', name: 'SMC', desc: 'Smart Money Concepts', color: '#2F81F7', winRate: 72.4, pf: 2.34, trades: 142, icon: '⚡' },
+  { id: 'ict', name: 'ICT', desc: 'Inner Circle Trader', color: '#8B5CF6', winRate: 68.9, pf: 2.18, trades: 128, icon: '🎯' },
+  { id: 'wyckoff', name: 'Wyckoff', desc: 'Phase analysis', color: '#10B981', winRate: 64.2, pf: 1.92, trades: 98, icon: '📐' },
+  { id: 'price-action', name: 'Price Action', desc: 'Pure PA setups', color: '#F59E0B', winRate: 61.7, pf: 1.78, trades: 184, icon: '📊' },
+  { id: 'fibonacci', name: 'Fibonacci', desc: 'Retracement levels', color: '#EC4899', winRate: 58.3, pf: 1.65, trades: 156, icon: '🌀' },
+  { id: 'elliott', name: 'Elliott Wave', desc: 'Wave counting', color: '#06B6D4', winRate: 55.1, pf: 1.52, trades: 89, icon: '🌊' },
+  { id: 'supply-demand', name: 'Supply & Demand', desc: 'S/D zones', color: '#EF4444', winRate: 66.8, pf: 2.05, trades: 134, icon: '⚖️' },
+  { id: 'harmonic', name: 'Harmonic', desc: 'Pattern trading', color: '#A78BFA', winRate: 59.4, pf: 1.71, trades: 76, icon: '💎' },
+  { id: 'volume', name: 'Volume Profile', desc: 'Volume analysis', color: '#34D399', winRate: 63.5, pf: 1.84, trades: 112, icon: '📈' }
+];
+
+const SYMBOLS = [
+  { sym: 'XAUUSD', name: 'Gold', price: 2374.82, change: 0.42, atr: 12.4, wr: 71.2, trades: 248, trend: 'up' },
+  { sym: 'BTCUSD', name: 'Bitcoin', price: 67342.18, change: 1.84, atr: 1240.5, wr: 64.8, trades: 192, trend: 'up' },
+  { sym: 'EURUSD', name: 'Euro/USD', price: 1.0834, change: -0.18, atr: 0.0042, wr: 58.4, trades: 156, trend: 'down' },
+  { sym: 'GBPUSD', name: 'Pound/USD', price: 1.2718, change: 0.24, atr: 0.0058, wr: 62.1, trades: 134, trend: 'up' },
+  { sym: 'USDJPY', name: 'USD/Yen', price: 154.82, change: -0.32, atr: 0.84, wr: 55.7, trades: 142, trend: 'down' },
+  { sym: 'NAS100', name: 'Nasdaq', price: 18482.40, change: 0.92, atr: 142.8, wr: 68.3, trades: 178, trend: 'up' }
+];
+
+const TIMEFRAMES = [
+  { tf: 'M5', wr: 52.4, trades: 412, color: '#94A3B8' },
+  { tf: 'M15', wr: 58.2, trades: 348, color: '#60A5FA' },
+  { tf: 'M30', wr: 62.7, trades: 268, color: '#34D399' },
+  { tf: 'H1', wr: 67.4, trades: 184, color: '#FBBF24' },
+  { tf: 'H4', wr: 72.8, trades: 124, color: '#A78BFA' },
+  { tf: 'D1', wr: 78.3, trades: 68, color: '#F472B6' }
+];
+
+/* ==========================================
+   PAGE NAVIGATION
+   ========================================== */
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const page = item.dataset.page;
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.getElementById('pageTitle').textContent = translations[currentLang][page] || translations[currentLang][page.replace('-', '_')] || page;
+    document.getElementById('sidebar').classList.remove('open');
+  });
+});
+document.getElementById('menuBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+/* ==========================================
+   RENDER: LIVE PRICES
+   ========================================== */
+function renderLivePrices() {
+  const html = SYMBOLS.slice(0, 6).map(s => `
+    <div class="flex items-center justify-between p-2 rounded-lg hover:bg-white/[0.03] transition" data-sym="${s.sym}">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold" style="background: rgba(47,129,247,0.12); color: var(--primary);">${s.sym.slice(0,2)}</div>
+        <div>
+          <div class="text-sm font-semibold">${s.sym}</div>
+          <div class="text-xs" style="color: var(--text-2);">${s.name}</div>
+        </div>
+      </div>
+      <div class="text-end">
+        <div class="text-sm font-semibold price-${s.sym}">${s.price.toFixed(s.price > 100 ? 2 : 4)}</div>
+        <div class="text-xs ${s.change >= 0 ? 'price-up' : 'price-down'}">${s.change >= 0 ? '▲' : '▼'} ${Math.abs(s.change).toFixed(2)}%</div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('livePrices').innerHTML = html;
+  document.getElementById('watchlist').innerHTML = html;
+}
+
+/* ==========================================
+   RENDER: ACTIVE TRADES
+   ========================================== */
+const ACTIVE_TRADES = [
+  { sym: 'XAUUSD', school: 'SMC', tf: 'H4', type: 'BUY', entry: 2368.40, sl: 2358.20, tp1: 2384.60, tp2: 2398.80, pnl: 142.50 },
+  { sym: 'BTCUSD', school: 'ICT', tf: 'H1', type: 'BUY', entry: 66820, sl: 65900, tp1: 68200, tp2: 69400, pnl: 312.40 },
+  { sym: 'EURUSD', school: 'Wyckoff', tf: 'H4', type: 'SELL', entry: 1.0858, sl: 1.0892, tp1: 1.0810, tp2: 1.0762, pnl: -28.40 },
+  { sym: 'GBPUSD', school: 'SMC', tf: 'H1', type: 'BUY', entry: 1.2698, sl: 1.2660, tp1: 1.2742, tp2: 1.2782, pnl: 84.20 },
+  { sym: 'NAS100', school: 'Volume Profile', tf: 'M30', type: 'BUY', entry: 18420, sl: 18340, tp1: 18540, tp2: 18620, pnl: 218.60 },
+  { sym: 'USDJPY', school: 'Price Action', tf: 'H4', type: 'SELL', entry: 155.20, sl: 155.80, tp1: 154.40, tp2: 153.60, pnl: 56.80 },
+  { sym: 'XAUUSD', school: 'Fibonacci', tf: 'M15', type: 'BUY', entry: 2370.10, sl: 2364.20, tp1: 2378.40, tp2: 2384.20, pnl: 38.40 }
+];
+
+function renderActiveTrades() {
+  document.getElementById('activeTradesBody').innerHTML = ACTIVE_TRADES.map(t => `
+    <tr>
+      <td><span class="font-semibold">${t.sym}</span></td>
+      <td><span class="text-xs" style="color: var(--text-2);">${t.school}</span></td>
+      <td><span class="badge ${t.type === 'BUY' ? 'badge-success' : 'badge-danger'}">${t.type}</span></td>
+      <td><span class="font-semibold ${t.pnl >= 0 ? 'price-up' : 'price-down'}">${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)}</span></td>
+    </tr>
+  `).join('');
+}
+
+/* ==========================================
+   RENDER: SIGNALS
+   ========================================== */
+const SIGNALS = [
+  { sym: 'XAUUSD', school: 'SMC', tf: 'H4', type: 'BUY', time: '2m ago', conf: 'strong' },
+  { sym: 'BTCUSD', school: 'ICT', tf: 'H1', type: 'BUY', time: '8m ago', conf: 'strong' },
+  { sym: 'EURUSD', school: 'Fibonacci', tf: 'M30', type: 'SELL', time: '14m ago', conf: 'medium' },
+  { sym: 'GBPUSD', school: 'Wyckoff', tf: 'H4', type: 'BUY', time: '32m ago', conf: 'medium' },
+  { sym: 'USDJPY', school: 'Harmonic', tf: 'H1', type: 'SELL', time: '47m ago', conf: 'weak' },
+  { sym: 'NAS100', school: 'Volume Profile', tf: 'M15', type: 'BUY', time: '1h ago', conf: 'strong' }
+];
+
+function renderSignals() {
+  const confColors = { strong: 'badge-success', medium: 'badge-warning', weak: 'badge-danger' };
+  document.getElementById('signalsList').innerHTML = SIGNALS.map(s => `
+    <div class="flex items-center justify-between p-3 rounded-lg" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: ${s.type === 'BUY' ? 'rgba(46,160,67,0.12)' : 'rgba(248,81,73,0.12)'}; color: ${s.type === 'BUY' ? 'var(--success)' : 'var(--danger)'};">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            ${s.type === 'BUY' ? '<polyline points="6 14 12 8 18 14"/>' : '<polyline points="6 10 12 16 18 10"/>'}
+          </svg>
+        </div>
+        <div>
+          <div class="text-sm font-semibold">${s.sym} <span class="text-xs ms-1" style="color: var(--text-2);">${s.tf}</span></div>
+          <div class="text-xs" style="color: var(--text-2);">${s.school} · ${s.time}</div>
+        </div>
+      </div>
+      <span class="badge ${confColors[s.conf]}">${s.conf}</span>
+    </div>
+  `).join('');
+}
+
+/* ==========================================
+   RENDER: SYMBOLS TABLE
+   ========================================== */
+function renderSymbolsTable() {
+  document.getElementById('symbolsTable').innerHTML = SYMBOLS.map(s => `
+    <tr>
+      <td><div class="font-semibold">${s.sym}</div><div class="text-xs" style="color: var(--text-2);">${s.name}</div></td>
+      <td class="font-semibold">${s.price.toFixed(s.price > 100 ? 2 : 4)}</td>
+      <td class="${s.change >= 0 ? 'price-up' : 'price-down'} font-semibold">${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%</td>
+      <td>${s.atr.toFixed(s.atr > 10 ? 1 : 4)}</td>
+      <td>
+        <div class="flex items-center gap-2">
+          <div class="progress flex-1" style="width:60px;"><div class="progress-bar" style="width:${s.wr}%; background:${s.wr > 65 ? 'var(--success)' : s.wr > 55 ? 'var(--warning)' : 'var(--danger)'};"></div></div>
+          <span class="text-xs font-semibold">${s.wr}%</span>
+        </div>
+      </td>
+      <td>${s.trades}</td>
+      <td><span class="badge ${s.trend === 'up' ? 'badge-success' : 'badge-danger'}">${s.trend === 'up' ? '↑ Bullish' : '↓ Bearish'}</span></td>
+    </tr>
+  `).join('');
+}
+
+/* ==========================================
+   RENDER: TIMEFRAMES GRID
+   ========================================== */
+function renderTimeframes() {
+  document.getElementById('tfGrid').innerHTML = TIMEFRAMES.map(t => `
+    <div class="card p-4 text-center">
+      <div class="text-xs font-semibold mb-2" style="color: var(--text-2);">${t.tf}</div>
+      <div class="text-2xl font-bold mb-2" style="color: ${t.color};">${t.wr}%</div>
+      <div class="progress mb-2"><div class="progress-bar" style="width:${t.wr}%; background:${t.color};"></div></div>
+      <div class="text-xs" style="color: var(--text-2);">${t.trades} trades</div>
+    </div>
+  `).join('');
+}
+
+/* ==========================================
+   RENDER: SCHOOLS GRID
+   ========================================== */
+function renderSchools() {
+  document.getElementById('schoolsGrid').innerHTML = SCHOOLS.map(s => `
+    <div class="school-card">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <div class="grid-icon" style="background: ${s.color}22; color: ${s.color};">${s.icon}</div>
+          <div>
+            <div class="font-semibold">${s.name}</div>
+            <div class="text-xs" style="color: var(--text-2);">${s.desc}</div>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 mt-4">
+        <div>
+          <div class="text-xs" style="color: var(--text-2);">Win Rate</div>
+          <div class="font-bold" style="color: ${s.color};">${s.winRate}%</div>
+        </div>
+        <div>
+          <div class="text-xs" style="color: var(--text-2);">PF</div>
+          <div class="font-bold">${s.pf}</div>
+        </div>
+        <div>
+          <div class="text-xs" style="color: var(--text-2);">Trades</div>
+          <div class="font-bold">${s.trades}</div>
+        </div>
+      </div>
+      <div class="progress mt-3"><div class="progress-bar" style="width:${s.winRate}%; background:${s.color};"></div></div>
+    </div>
+  `).join('');
+}
+
+/* ==========================================
+   RENDER: TRADES TABLE
+   ========================================== */
+const ALL_TRADES = [];
+for (let i = 0; i < 30; i++) {
+  const sym = SYMBOLS[i % SYMBOLS.length];
+  const school = SCHOOLS[i % SCHOOLS.length];
+  const tf = TIMEFRAMES[i % TIMEFRAMES.length];
+  const type = i % 2 === 0 ? 'BUY' : 'SELL';
+  const result = i < 7 ? 'OPEN' : (Math.random() > 0.35 ? 'TP1' : (Math.random() > 0.5 ? 'TP2' : 'SL'));
+  const pnl = result === 'SL' ? -(50 + Math.random() * 100) : result === 'OPEN' ? (Math.random() - 0.3) * 200 : (80 + Math.random() * 280);
+  ALL_TRADES.push({
+    id: 1284 - i, sym: sym.sym, school: school.name, tf: tf.tf, type,
+    entry: sym.price * (1 + (Math.random() - 0.5) * 0.005),
+    sl: sym.price * (1 - 0.008),
+    tp1: sym.price * (1 + 0.012),
+    tp2: sym.price * (1 + 0.025),
+    result, pnl
+  });
+}
+
+function renderTrades() {
+  const sf = document.getElementById('filterSchool').value;
+  const sy = document.getElementById('filterSymbol').value;
+  const st = document.getElementById('filterStatus').value;
+  let list = ALL_TRADES;
+  if (sf) list = list.filter(t => t.school === sf);
+  if (sy) list = list.filter(t => t.sym === sy);
+  if (st === 'open') list = list.filter(t => t.result === 'OPEN');
+  if (st === 'closed') list = list.filter(t => t.result !== 'OPEN');
+
+  document.getElementById('tradesTable').innerHTML = list.map(t => `
+    <tr>
+      <td class="text-xs" style="color: var(--text-2);">#${t.id}</td>
+      <td class="font-semibold">${t.sym}</td>
+      <td class="text-xs">${t.school}</td>
+      <td><span class="badge badge-primary">${t.tf}</span></td>
+      <td><span class="badge ${t.type === 'BUY' ? 'badge-success' : 'badge-danger'}">${t.type}</span></td>
+      <td>${t.entry.toFixed(t.entry > 100 ? 2 : 4)}</td>
+      <td style="color: var(--danger);">${t.sl.toFixed(t.sl > 100 ? 2 : 4)}</td>
+      <td style="color: var(--success);">${t.tp1.toFixed(t.tp1 > 100 ? 2 : 4)}</td>
+      <td style="color: var(--success);">${t.tp2.toFixed(t.tp2 > 100 ? 2 : 4)}</td>
+      <td><span class="badge ${t.result === 'OPEN' ? 'badge-warning' : t.result === 'SL' ? 'badge-danger' : 'badge-success'}">${t.result}</span></td>
+      <td class="font-semibold ${t.pnl >= 0 ? 'price-up' : 'price-down'}">${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)}</td>
+    </tr>
+  `).join('');
+}
+
+// Populate filter selects
+SCHOOLS.forEach(s => { document.getElementById('filterSchool').innerHTML += `<option value="${s.name}">${s.name}</option>`; });
+SYMBOLS.forEach(s => { document.getElementById('filterSymbol').innerHTML += `<option value="${s.sym}">${s.sym}</option>`; });
+['filterSchool','filterSymbol','filterStatus'].forEach(id => document.getElementById(id).addEventListener('change', renderTrades));
+
+/* ==========================================
+   RENDER: STATISTICS TABLE
+   ========================================== */
+function renderStatsTable() {
+  const sessions = ['London', 'New York', 'Tokyo', 'Sydney'];
+  const rows = [];
+  for (let i = 0; i < 12; i++) {
+    const sc = SCHOOLS[i % SCHOOLS.length];
+    const sy = SYMBOLS[i % SYMBOLS.length];
+    const tf = TIMEFRAMES[i % TIMEFRAMES.length];
+    rows.push({
+      school: sc.name, sym: sy.sym, tf: tf.tf,
+      wr: (50 + Math.random() * 30).toFixed(1),
+      tp1: (60 + Math.random() * 25).toFixed(1),
+      tp2: (35 + Math.random() * 30).toFixed(1),
+      pf: (1.4 + Math.random() * 1.2).toFixed(2),
+      rr: (1.5 + Math.random() * 1.5).toFixed(2),
+      session: sessions[i % 4],
+      hour: (8 + (i % 12)) + ':00',
+      trades: 30 + Math.floor(Math.random() * 80)
+    });
+  }
+  document.getElementById('statsTable').innerHTML = rows.map(r => `
+    <tr>
+      <td class="font-semibold">${r.school}</td>
+      <td>${r.sym}</td>
+      <td><span class="badge badge-primary">${r.tf}</span></td>
+      <td class="font-semibold ${r.wr > 65 ? 'price-up' : ''}">${r.wr}%</td>
+      <td>${r.tp1}%</td>
+      <td>${r.tp2}%</td>
+      <td class="font-semibold">${r.pf}</td>
+      <td>1:${r.rr}</td>
+      <td><span class="badge badge-warning">${r.session}</span></td>
+      <td>${r.hour}</td>
+      <td>${r.trades}</td>
+    </tr>
+  `).join('');
+}
+
+/* ==========================================
+   RENDER: BACKLIST
+   ========================================== */
+function renderBacklist() {
+  const list = [];
+  for (let i = 0; i < 25; i++) {
+    const sc = SCHOOLS[i % SCHOOLS.length];
+    const sy = SYMBOLS[i % SYMBOLS.length];
+    const tf = TIMEFRAMES[i % TIMEFRAMES.length];
+    const result = ['TP1', 'TP2', 'SL'][i % 3];
+    const date = new Date(Date.now() - i * 7200000);
+    list.push({
+      time: date.toLocaleString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+      sym: sy.sym, school: sc.name, tf: tf.tf,
+      type: i % 2 === 0 ? 'BUY' : 'SELL',
+      result
+    });
+  }
+  document.getElementById('backlist').innerHTML = list.map(b => `
+    <div class="flex items-center justify-between p-3 rounded-lg" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+      <div class="flex items-center gap-3">
+        <div class="text-xs font-mono" style="color: var(--text-2);">${b.time}</div>
+        <div class="font-semibold">${b.sym}</div>
+        <span class="badge badge-primary">${b.tf}</span>
+        <span class="text-xs" style="color: var(--text-2);">${b.school}</span>
+        <span class="badge ${b.type === 'BUY' ? 'badge-success' : 'badge-danger'}">${b.type}</span>
+      </div>
+      <span class="badge ${b.result === 'SL' ? 'badge-danger' : 'badge-success'}">${b.result}</span>
+    </div>
+  `).join('');
+}
+
+/* ==========================================
+   CHARTS
+   ========================================== */
+Chart.defaults.color = '#8B949E';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = 'Inter';
+
+function gradientFill(ctx, color) {
+  const g = ctx.createLinearGradient(0, 0, 0, 260);
+  g.addColorStop(0, color + '55');
+  g.addColorStop(1, color + '00');
+  return g;
+}
+
+function renderEquityChart() {
+  const ctx = document.getElementById('equityChart').getContext('2d');
+  const labels = []; const data = []; let v = 10000;
+  for (let i = 30; i >= 0; i--) {
+    labels.push('D-' + i);
+    v += (Math.random() - 0.35) * 280;
+    data.push(v);
+  }
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{
+      data, borderColor: '#2F81F7', borderWidth: 2.5,
+      backgroundColor: gradientFill(ctx, '#2F81F7'), fill: true, tension: 0.35,
+      pointRadius: 0, pointHoverRadius: 5
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#161B22', borderColor: '#30363D', borderWidth: 1 } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.04)' } } }
+    }
+  });
+}
+
+function renderMarketChart() {
+  const ctx = document.getElementById('marketChart').getContext('2d');
+  const labels = []; const data = []; let v = 2360;
+  for (let i = 0; i < 60; i++) {
+    labels.push(i);
+    v += (Math.random() - 0.45) * 4;
+    data.push(v);
+  }
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{
+      data, borderColor: '#FBBF24', borderWidth: 2,
+      backgroundColor: gradientFill(ctx, '#FBBF24'), fill: true, tension: 0.3,
+      pointRadius: 0
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.04)' } } }
+    }
+  });
+}
+
+function renderTfChart() {
+  const ctx = document.getElementById('tfChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: TIMEFRAMES.map(t => t.tf),
+      datasets: [{
+        label: 'Win Rate %', data: TIMEFRAMES.map(t => t.wr),
+        backgroundColor: TIMEFRAMES.map(t => t.color + 'cc'),
+        borderRadius: 8, borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true, max: 100 } }
+    }
+  });
+}
+
+function renderSchoolChart() {
+  const ctx = document.getElementById('schoolChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: SCHOOLS.map(s => s.name),
+      datasets: [{
+        label: 'Win Rate', data: SCHOOLS.map(s => s.winRate),
+        backgroundColor: 'rgba(47,129,247,0.18)', borderColor: '#2F81F7',
+        borderWidth: 2, pointBackgroundColor: '#2F81F7', pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { r: { angleLines: { color: 'rgba(255,255,255,0.06)' }, grid: { color: 'rgba(255,255,255,0.06)' }, pointLabels: { color: '#E6EDF3', font: { size: 11 } }, ticks: { display: false }, suggestedMin: 40, suggestedMax: 80 } }
+    }
+  });
+}
+
+function renderStatCharts() {
+  const ctx1 = document.getElementById('statSchoolChart').getContext('2d');
+  new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: SCHOOLS.map(s => s.name),
+      datasets: [{ data: SCHOOLS.map(s => s.winRate), backgroundColor: SCHOOLS.map(s => s.color + 'cc'), borderRadius: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true, max: 100 }, y: { grid: { display: false } } }
+    }
+  });
+  const ctx2 = document.getElementById('statTFChart').getContext('2d');
+  new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: TIMEFRAMES.map(t => t.tf),
+      datasets: [{ data: TIMEFRAMES.map(t => t.trades), backgroundColor: TIMEFRAMES.map(t => t.color), borderColor: '#161B22', borderWidth: 2 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { color: '#E6EDF3', padding: 12, font: { size: 12 } } } },
+      cutout: '60%'
+    }
+  });
+}
+
+/* ==========================================
+   LIVE PRICE SIMULATION
+   ========================================== */
+function tickPrices() {
+  SYMBOLS.forEach(s => {
+    const delta = (Math.random() - 0.5) * (s.atr * 0.05);
+    const oldPrice = s.price;
+    s.price += delta;
+    s.change += (Math.random() - 0.5) * 0.05;
+    document.querySelectorAll(`.price-${s.sym}`).forEach(el => {
+      el.textContent = s.price.toFixed(s.price > 100 ? 2 : 4);
+      el.classList.remove('flash-up', 'flash-down');
+      void el.offsetWidth;
+      el.classList.add(s.price >= oldPrice ? 'flash-up' : 'flash-down');
+    });
+  });
+}
+setInterval(tickPrices, 2200);
+
+/* ==========================================
+   AI ASSISTANT (rule-based, data-driven)
+   ========================================== */
+function aiAnalyze(question) {
+  const q = question.toLowerCase();
+  const lang = currentLang;
+
+  // Educational trade idea generator
+  if (q.includes('trade idea') || q.includes('generate') || q.includes('فكرة') || q.includes('صفقة')) {
+    const bestSchool = [...SCHOOLS].sort((a,b) => b.winRate - a.winRate)[0];
+    const bestTF = [...TIMEFRAMES].sort((a,b) => b.wr - a.wr)[0];
+    const bestSym = [...SYMBOLS].sort((a,b) => b.wr - a.wr)[0];
+    const entry = bestSym.price;
+    const sl = entry * (1 - 0.008);
+    const tp1 = entry * (1 + 0.012);
+    const tp2 = entry * (1 + 0.024);
+    const conf = bestSchool.winRate > 70 ? (lang === 'ar' ? 'قوي' : 'Strong') : (lang === 'ar' ? 'متوسط' : 'Medium');
+
+    if (lang === 'ar') {
+      return `📊 <b>فكرة صفقة تعليمية</b><br><br>
+        <b>الرمز:</b> ${bestSym.sym} (${bestSym.name})<br>
+        <b>الإطار:</b> ${bestTF.tf}<br>
+        <b>المدرسة:</b> ${bestSchool.name} (نسبة ربح ${bestSchool.winRate}%)<br>
+        <b>النوع:</b> شراء<br><br>
+        <b>الدخول:</b> ${entry.toFixed(2)}<br>
+        <b>وقف الخسارة:</b> ${sl.toFixed(2)}<br>
+        <b>الهدف 1:</b> ${tp1.toFixed(2)}<br>
+        <b>الهدف 2:</b> ${tp2.toFixed(2)}<br><br>
+        <b>المنطق:</b> أعلى نسبة ربح للمدرسة ${bestSchool.name} مع أفضل إطار ${bestTF.tf} (${bestTF.wr}%) على ${bestSym.sym}.<br>
+        <b>مستوى الثقة:</b> ${conf}<br><br>
+        <i>⚠️ تعليمي فقط — ليست نصيحة مالية</i>`;
+    }
+    return `📊 <b>Educational Trade Idea</b><br><br>
+      <b>Symbol:</b> ${bestSym.sym} (${bestSym.name})<br>
+      <b>Timeframe:</b> ${bestTF.tf}<br>
+      <b>School:</b> ${bestSchool.name} (${bestSchool.winRate}% win rate)<br>
+      <b>Type:</b> BUY<br><br>
+      <b>Entry:</b> ${entry.toFixed(2)}<br>
+      <b>Stop Loss:</b> ${sl.toFixed(2)}<br>
+      <b>TP1:</b> ${tp1.toFixed(2)} (R:R 1:1.5)<br>
+      <b>TP2:</b> ${tp2.toFixed(2)} (R:R 1:3.0)<br><br>
+      <b>Logic:</b> Highest performing school <b>${bestSchool.name}</b> aligns with best timeframe <b>${bestTF.tf}</b> (${bestTF.wr}% WR) on <b>${bestSym.sym}</b>.<br>
+      <b>Confidence:</b> ${conf}<br><br>
+      <i>⚠️ Educational only — not financial advice</i>`;
+  }
+
+  if (q.includes('smc')) {
+    const smc = SCHOOLS.find(s => s.id === 'smc');
+    return lang === 'ar'
+      ? `🔍 <b>تحليل إشارة SMC</b><br><br>إشارة الشراء على XAUUSD H4 صدرت بسبب:<br>• كسر هيكلي (BOS) صعودي مؤكد<br>• منطقة طلب (Order Block) عند 2368.40<br>• اختلال سيولة (FVG) أعلى السعر الحالي<br>• نسبة ربح المدرسة: ${smc.winRate}% · PF: ${smc.pf}<br><br><i>هذا تحليل تعليمي قائم على بيانات المنصة.</i>`
+      : `🔍 <b>SMC Signal Analysis</b><br><br>The BUY signal on XAUUSD H4 was triggered by:<br>• Confirmed bullish Break of Structure (BOS)<br>• Bullish Order Block at 2368.40<br>• Fair Value Gap (FVG) above current price<br>• School metrics: ${smc.winRate}% WR · ${smc.pf} PF<br><br><i>Educational analysis based on platform data only.</i>`;
+  }
+
+  if (q.includes('trend') || q.includes('اتجاه')) {
+    return lang === 'ar'
+      ? `📈 <b>اتجاه XAUUSD على H4</b><br><br>الاتجاه العام: <b style="color:var(--success);">صعودي ↑</b><br>• 4 من 6 أطر زمنية تؤكد الصعود<br>• 7 من 9 مدارس تعطي إشارات شراء<br>• ATR الحالي: 12.4<br>• أقوى جلسة: لندن<br><br><i>تحليل قائم على بيانات حية.</i>`
+      : `📈 <b>XAUUSD H4 Trend</b><br><br>Overall trend: <b style="color:var(--success);">Bullish ↑</b><br>• 4 of 6 timeframes confirm uptrend<br>• 7 of 9 schools issue BUY signals<br>• Current ATR: 12.4<br>• Strongest session: London<br><br><i>Analysis based on live platform data.</i>`;
+  }
+
+  if (q.includes('best') || q.includes('btc') || q.includes('أفضل') || q.includes('بيتكوين')) {
+    return lang === 'ar'
+      ? `🏆 <b>أفضل المدارس على BTCUSD</b><br><br>1. ICT — 71.2% نسبة ربح<br>2. SMC — 68.4% نسبة ربح<br>3. Volume Profile — 65.8% نسبة ربح<br><br>أفضل إطار للبيتكوين: H4 (74% WR)<br>أفضل جلسة: نيويورك`
+      : `🏆 <b>Best Schools on BTCUSD</b><br><br>1. ICT — 71.2% win rate<br>2. SMC — 68.4% win rate<br>3. Volume Profile — 65.8% win rate<br><br>Best TF for BTC: H4 (74% WR)<br>Best session: New York`;
+  }
+
+  if (q.includes('strongest') || q.includes('today') || q.includes('أقوى') || q.includes('اليوم')) {
+    const top = [...TIMEFRAMES].sort((a,b)=>b.wr-a.wr)[0];
+    return lang === 'ar'
+      ? `⏱ <b>أقوى إطار زمني اليوم</b><br><br>${top.tf} مع نسبة ربح ${top.wr}%<br>إجمالي الصفقات: ${top.trades}`
+      : `⏱ <b>Strongest Timeframe Today</b><br><br>${top.tf} with ${top.wr}% win rate<br>Total trades: ${top.trades}`;
+  }
+
+  return lang === 'ar'
+    ? `أستطيع مساعدتك في:<br>• تحليل الإشارات والاتجاهات<br>• توليد أفكار تداول تعليمية<br>• مقارنة المدارس والأطر الزمنية<br>• شرح منطق الإشارات<br><br>جرب أحد الأسئلة السريعة أعلاه!`
+    : `I can help you with:<br>• Signal & trend analysis<br>• Educational trade ideas<br>• School & timeframe comparisons<br>• Signal logic explanations<br><br>Try one of the quick questions above!`;
+}
+
+function appendMessage(text, type) {
+  const div = document.createElement('div');
+  div.className = `ai-msg ai-msg-${type}`;
+  div.innerHTML = text;
+  document.getElementById('chatBox').appendChild(div);
+  document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+}
+
+function askAI(q) {
+  appendMessage(q, 'user');
+  setTimeout(() => appendMessage(aiAnalyze(q), 'bot'), 600);
+}
+
+function sendMessage() {
+  const inp = document.getElementById('chatInput');
+  if (!inp.value.trim()) return;
+  askAI(inp.value);
+  inp.value = '';
+}
+
+document.getElementById('chatInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendMessage();
+});
+
+/* ==========================================
+   TOGGLES
+   ========================================== */
+document.querySelectorAll('.toggle').forEach(t => t.addEventListener('click', () => t.classList.toggle('active')));
+
+/* ==========================================
+   INIT
+   ========================================== */
+renderLivePrices();
+renderActiveTrades();
+renderSignals();
+renderSymbolsTable();
+renderTimeframes();
+renderSchools();
+renderTrades();
+renderStatsTable();
+renderBacklist();
+renderEquityChart();
+renderMarketChart();
+renderTfChart();
+renderSchoolChart();
+renderStatCharts();
+applyLang('en');
+</script>
+</body>
+</html>
+```
